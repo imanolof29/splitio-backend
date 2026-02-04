@@ -26,10 +26,6 @@ final class GroupServiceImpl(
         return groupRepository.findById(id).orElse(null)
     }
 
-    override fun save(group: Group): Group {
-        return groupRepository.save(group)
-    }
-
     override fun create(dto: CreateGroupDto, principal: AuthenticatedUser): Group {
         val user = userRepository.findById(principal.id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "User not found") }

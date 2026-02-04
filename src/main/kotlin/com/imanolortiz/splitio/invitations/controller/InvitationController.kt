@@ -21,7 +21,7 @@ final class InvitationController(
         @RequestBody dto: CreateInvitationDto,
         @AuthenticationPrincipal principal: AuthenticatedUser
     ) {
-        invitationService.create(dto.groupId, principal)
+        invitationService.create(dto, principal)
     }
 
     @PostMapping("token/{token}/accept")

@@ -2,6 +2,8 @@ package com.imanolortiz.splitio.invitations.service.impl
 
 import com.imanolortiz.splitio.auth.model.AuthenticatedUser
 import com.imanolortiz.splitio.auth.repository.UserRepository
+import com.imanolortiz.splitio.groups.repository.GroupRepository
+import com.imanolortiz.splitio.invitations.dto.CreateInvitationDto
 import com.imanolortiz.splitio.invitations.entity.Invitation
 import com.imanolortiz.splitio.invitations.entity.InvitationStatus
 import com.imanolortiz.splitio.invitations.repository.InvitationRepository
@@ -10,21 +12,34 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
+import java.util.UUID
 
 @Service
 class InvitationServiceImpl(
     private val invitationRepository: InvitationRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val groupRepository: GroupRepository
 ) : InvitationService {
 
     override fun create(
-        groupId: String,
-        authenticatedUser: AuthenticatedUser
+        dto: CreateInvitationDto,
+        principal: AuthenticatedUser
     ): Invitation {
-        TODO("Not yet implemented")
+        val group = groupRepository.findById(dto.groupId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found") }
+        val inviter = userRepository.findById(principal.id)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "User not found") }
+
+        val invitation = Invitation(
+            group = group,
+            inviter = inviter,
+            token = UUID.randomUUID().toString(),
+        )
+
+        return invitationRepository.save(invitation)
     }
 
-    override fun accept(token: String, authenticatedUser: AuthenticatedUser) {
+    override fun accept(token: String, principal: AuthenticatedUser) {
         val invitation = invitationRepository.findByToken(token)
             ?: throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -50,7 +65,7 @@ class InvitationServiceImpl(
             )
         }
 
-        val user = userRepository.findById(authenticatedUser.id)
+        val user = userRepository.findById(principal.id)
             .orElseThrow {
                 ResponseStatusException(
                     HttpStatus.NOT_FOUND,

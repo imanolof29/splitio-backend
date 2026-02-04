@@ -1,6 +1,7 @@
 package com.imanolortiz.splitio.groups.entity
 
 import com.imanolortiz.splitio.auth.entity.User
+import com.imanolortiz.splitio.expenses.entity.Expense
 import jakarta.persistence.*
 
 @Entity
@@ -19,5 +20,9 @@ class Group(
         joinColumns = [JoinColumn(name = "group_id")],
         inverseJoinColumns = [JoinColumn(name = "user_id")]
     )
-    val members: MutableSet<User> = mutableSetOf()
+    val members: MutableSet<User> = mutableSetOf(),
+
+    @OneToMany(mappedBy = "group", cascade = [CascadeType.ALL])
+    val expenses: List<Expense> = mutableListOf()
+
 )
