@@ -5,6 +5,7 @@ import com.imanolortiz.splitio.auth.dto.`in`.SignInDto
 import com.imanolortiz.splitio.auth.dto.`in`.SignUpDto
 import com.imanolortiz.splitio.auth.dto.out.TokenResponseDto
 import com.imanolortiz.splitio.auth.mapper.toUser
+import com.imanolortiz.splitio.auth.model.AuthenticatedUser
 import com.imanolortiz.splitio.auth.service.HashService
 import com.imanolortiz.splitio.auth.service.TokenService
 import com.imanolortiz.splitio.auth.service.UserService
@@ -28,7 +29,7 @@ class AuthController(
 
         val user = userService.save(dto.toUser(hashService.hashPassword(dto.password)))
 
-        return generateTokens(user.email)
+        return generateTokens(AuthenticatedUser(id = user.id, email = user.email))
     }
 
     @PostMapping("/signin")
@@ -40,7 +41,7 @@ class AuthController(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
 
-        return generateTokens(user.email)
+        return generateTokens(AuthenticatedUser(id = user.id, email = user.email))
     }
 
     @PostMapping("/refresh")
@@ -49,14 +50,14 @@ class AuthController(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
         }
 
-        val email = tokenService.extractEmail(dto.refreshToken)
+        val user = tokenService.extractUser(dto.refreshToken)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
 
-        return generateTokens(email)
+        return generateTokens(user)
     }
 
-    private fun generateTokens(email: String) = TokenResponseDto(
-        accessToken = tokenService.generateAccessToken(email),
-        refreshToken = tokenService.generateRefreshToken(email),
+    private fun generateTokens(user: AuthenticatedUser) = TokenResponseDto(
+        accessToken = tokenService.generateAccessToken(user),
+        refreshToken = tokenService.generateRefreshToken(user),
     )
 }
