@@ -23,11 +23,13 @@ class JwtAuthenticationFilter(
 
         if (header != null && header.startsWith("Bearer ")) {
             val token = header.substring(7)
-            val email = tokenService.extractEmail(token)
 
-            if (email != null && !tokenService.isRefreshToken(token)) {
-                val auth = UsernamePasswordAuthenticationToken(email, null, emptyList())
-                SecurityContextHolder.getContext().authentication = auth
+            if (!tokenService.isRefreshToken(token)) {
+                val user = tokenService.extractUser(token)
+                if (user != null) {
+                    val auth = UsernamePasswordAuthenticationToken(user, null, emptyList())
+                    SecurityContextHolder.getContext().authentication = auth
+                }
             }
         }
 

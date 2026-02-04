@@ -1,5 +1,6 @@
 package com.imanolortiz.splitio.auth.service.impl
 
+import com.imanolortiz.splitio.auth.model.AuthenticatedUser
 import com.imanolortiz.splitio.auth.service.TokenService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -19,24 +20,27 @@ final class TokenServiceImpl(
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret))
     }
 
-    override fun generateAccessToken(email: String): String {
-        return buildToken(email, accessExpiration, "access")
+    override fun generateAccessToken(user: AuthenticatedUser): String {
+        return buildToken(user, accessExpiration, "access")
     }
 
-    override fun generateRefreshToken(email: String): String {
-        return buildToken(email, refreshExpiration, "refresh")
+    override fun generateRefreshToken(user: AuthenticatedUser): String {
+        return buildToken(user, refreshExpiration, "refresh")
     }
 
-    override fun extractEmail(token: String): String? {
+    override fun extractUser(token: String): AuthenticatedUser? {
         return try {
-            parseClaims(token)?.subject
+            val claims = parseClaims(token) ?: return null
+            val id = claims.subject?.toLongOrNull() ?: return null
+            val email = claims.get("email", String::class.java) ?: return null
+            AuthenticatedUser(id = id, email = email)
         } catch (e: Exception) {
             null
         }
     }
 
     override fun isValid(token: String): Boolean {
-        return extractEmail(token) != null
+        return extractUser(token) != null
     }
 
     override fun isRefreshToken(token: String): Boolean {
@@ -47,10 +51,11 @@ final class TokenServiceImpl(
         }
     }
 
-    private fun buildToken(email: String, expiration: Long, type: String): String {
+    private fun buildToken(user: AuthenticatedUser, expiration: Long, type: String): String {
         val now = Date()
         return Jwts.builder()
-            .subject(email)
+            .subject(user.id.toString())
+            .claim("email", user.email)
             .claim("type", type)
             .issuedAt(now)
             .expiration(Date(now.time + expiration))
