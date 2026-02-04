@@ -3,13 +3,16 @@ package com.imanolortiz.splitio.groups.controller
 import com.imanolortiz.splitio.auth.model.AuthenticatedUser
 import com.imanolortiz.splitio.groups.dto.CreateGroupDto
 import com.imanolortiz.splitio.groups.dto.GroupDto
+import com.imanolortiz.splitio.groups.dto.UpdateGroupDto
 import com.imanolortiz.splitio.groups.mapper.toDto
 import com.imanolortiz.splitio.groups.service.GroupService
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -37,6 +40,19 @@ final class GroupController(
         @AuthenticationPrincipal principal: AuthenticatedUser
     ): GroupDto {
         return groupService.create(dto, principal).toDto()
+    }
+
+    @PutMapping("{id}")
+    fun updateGroup(
+        @PathVariable("id") id: Long,
+        @RequestBody dto: UpdateGroupDto
+    ) {
+        groupService.update(id, dto)
+    }
+
+    @DeleteMapping("{id}")
+    fun deleteGroup(@PathVariable("id") id: Long) {
+        groupService.delete(id)
     }
 
 }
