@@ -11,7 +11,7 @@ import javax.crypto.SecretKey
 
 @Service
 final class TokenServiceImpl(
-    @Value("\${jwt.secret}") private val secret: String,
+    @Value("\${JWT_SECRET}") private val secret: String,
     @Value("\${jwt.access-expiration}") private val accessExpiration: Long,
     @Value("\${jwt.refresh-expiration}") private val refreshExpiration: Long,
 ) : TokenService {
